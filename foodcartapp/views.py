@@ -1,9 +1,8 @@
-import json
-
 from django.http import JsonResponse
 from django.templatetags.static import static
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
-from star_burger import settings
 from .models import Product, Order, OrderItem
 
 
@@ -59,24 +58,20 @@ def product_list_api(request):
     })
 
 
+@api_view(['POST'])
 def register_order(request):
-    decoded_order = json.loads(request.body.decode())
-    print(decoded_order)
     order = Order.objects.create(
-        firstname=decoded_order['firstname'],
-        lastname=decoded_order['lastname'],
-        phonenumber=decoded_order['phonenumber'],
-        address=decoded_order['address']
+        firstname=request.data['firstname'],
+        lastname=request.data['lastname'],
+        phonenumber=request.data['phonenumber'],
+        address=request.data['address']
     )
-    print(order)
-    products = decoded_order['products']
+    products = request.data['products']
     for product in products:
-        print(product['product'])
-        order_item = OrderItem.objects.create(
+        OrderItem.objects.create(
             order=order,
             product=Product.objects.get(id=product['product']),
             quantity=product['quantity']
         )
-        print(order, order_item)
-    # TODO это лишь заглушка
-    return JsonResponse({})
+
+    return Response({})

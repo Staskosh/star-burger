@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'debug_toolbar',
     'phonenumber_field',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -123,3 +124,5 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "assets"),
     os.path.join(BASE_DIR, "bundles"),
 ]
+
+LOGIN_REDIRECT_URL = '/api/order/'
