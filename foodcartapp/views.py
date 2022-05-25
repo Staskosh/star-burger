@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 from django.templatetags.static import static
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -60,18 +61,27 @@ def product_list_api(request):
 
 @api_view(['POST'])
 def register_order(request):
-    order = Order.objects.create(
-        firstname=request.data['firstname'],
-        lastname=request.data['lastname'],
-        phonenumber=request.data['phonenumber'],
-        address=request.data['address']
-    )
-    products = request.data['products']
-    for product in products:
-        OrderItem.objects.create(
-            order=order,
-            product=Product.objects.get(id=product['product']),
-            quantity=product['quantity']
-        )
+    if 'products' in request.data:
+        products = request.data['products']
+        if isinstance(products, list) and products != []:
+            order = Order.objects.create(
+                firstname=request.data['firstname'],
+                lastname=request.data['lastname'],
+                phonenumber=request.data['phonenumber'],
+                address=request.data['address']
+            )
+            for product in products:
+                OrderItem.objects.create(
+                    order=order,
+                    product=Product.objects.get(id=product['product']),
+                    quantity=product['quantity']
+                )
 
-    return Response({})
+            return Response({}, status=status.HTTP_200_OK)
+        else:
+            content = {'error': 'products key is not presented or not list'}
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+    else:
+        content = {'error': 'products key is not presented or not list'}
+        return Response(content, status=status.HTTP_400_BAD_REQUEST)
