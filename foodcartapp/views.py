@@ -76,4 +76,7 @@ def register_order(request):
             quantity=product['quantity']
         )
 
-    return Response({}, status=status.HTTP_200_OK)
+    serialized_date = serializer.data
+    serialized_date['id'] = order.id
+
+    return Response(serialized_date, status=status.HTTP_200_OK)
