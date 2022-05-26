@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import Product, OrderSerializer
+from .models import Product, OrderSerializer, OrderItem, Order
 
 
 def banners_list_api(request):
@@ -63,5 +63,17 @@ def product_list_api(request):
 def register_order(request):
     serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
+    order = Order.objects.create(
+        firstname=serializer.validated_data['firstname'],
+        lastname=serializer.validated_data['lastname'],
+        phonenumber=serializer.validated_data['phonenumber'],
+        address=serializer.validated_data['address']
+    )
+    for product in serializer.validated_data['products']:
+        OrderItem.objects.create(
+            order=order,
+            product=product['product'],
+            quantity=product['quantity']
+        )
 
     return Response({}, status=status.HTTP_200_OK)
