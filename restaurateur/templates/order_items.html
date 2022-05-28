@@ -14,17 +14,19 @@
    <table class="table table-responsive">
     <tr>
       <th>ID заказа</th>
+      <th>Стоимость заказа</th>
       <th>Клиент</th>
       <th>Телефон</th>
       <th>Адрес доставки</th>
     </tr>
 
-    {% for order in orders %}
+    {% for order_item in order_items %}
       <tr>
-        <td>{{order.id}}-</td>
-        <td>{{order.firstname}} {{order.lastname}}</td>
-        <td>{{order.phonenumber}}</td>
-        <td>{{order.address}}</td>
+        <td>{{order_item.order.id}}-</td>
+        <td>{{order_item.amount}}</td>
+        <td>{{order_item.order.firstname}} {{order_item.order.lastname}}</td>
+        <td>{{order_item.order.phonenumber}}</td>
+        <td>{{order_item.order.address}}</td>
       </tr>
     {% endfor %}
    </table>

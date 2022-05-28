@@ -172,6 +172,11 @@ class OrderItem(models.Model):
         verbose_name = 'Элемент  заказа'
         verbose_name_plural = 'Элементы заказа'
 
+    def amount(self):
+        order_amount = self.product.price * self.quantity
+
+        return order_amount
+
     def __str__(self):
         return f"{self.product.name} - {self.quantity}"
 
