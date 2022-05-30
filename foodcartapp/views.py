@@ -1,5 +1,7 @@
 from decimal import Decimal
+from sqlite3 import IntegrityError, DatabaseError
 
+from django.db import transaction
 from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework import status
@@ -62,9 +64,11 @@ def product_list_api(request):
 
 
 @api_view(['POST'])
+@transaction.atomic
 def register_order(request):
     serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
+
     order = Order.objects.create(
         firstname=serializer.validated_data['firstname'],
         lastname=serializer.validated_data['lastname'],
@@ -86,3 +90,5 @@ def register_order(request):
     serialized_date['id'] = order.id
 
     return Response(serialized_date, status=status.HTTP_200_OK)
+
+
