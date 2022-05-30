@@ -1,5 +1,6 @@
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import Sum
 from phonenumber_field.modelfields import PhoneNumberField
 from rest_framework.serializers import ModelSerializer
 
@@ -142,6 +143,11 @@ class Order(models.Model):
         max_length=250
     )
 
+    def amount(self):
+        order_amount = OrderItem.objects.filter(order=self).aggregate(total_price=Sum('price'))
+
+        return order_amount['total_price']
+
     class Meta:
         verbose_name = 'Заказ'
         verbose_name_plural = 'Заказы'
@@ -167,15 +173,16 @@ class OrderItem(models.Model):
     quantity = models.IntegerField(
         'Количество'
     )
+    price = models.DecimalField(
+        'Стоимость позиции заказа',
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)]
+    )
 
     class Meta:
         verbose_name = 'Элемент  заказа'
         verbose_name_plural = 'Элементы заказа'
-
-    def amount(self):
-        order_amount = self.product.price * self.quantity
-
-        return order_amount
 
     def __str__(self):
         return f"{self.product.name} - {self.quantity}"

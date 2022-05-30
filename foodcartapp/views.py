@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework import status
@@ -70,10 +72,14 @@ def register_order(request):
         address=serializer.validated_data['address']
     )
     for product in serializer.validated_data['products']:
+        product_price = product['product'].price
+        price = Decimal(product_price * product['quantity'])
         OrderItem.objects.create(
             order=order,
             product=product['product'],
-            quantity=product['quantity']
+            quantity=product['quantity'],
+            price=price
+
         )
 
     serialized_date = serializer.data

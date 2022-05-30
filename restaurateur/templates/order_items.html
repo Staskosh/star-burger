@@ -20,13 +20,13 @@
       <th>Адрес доставки</th>
     </tr>
 
-    {% for order_item in order_items %}
+    {% for order in orders %}
       <tr>
-        <td>{{order_item.order.id}}-</td>
-        <td>{{order_item.amount}}</td>
-        <td>{{order_item.order.firstname}} {{order_item.order.lastname}}</td>
-        <td>{{order_item.order.phonenumber}}</td>
-        <td>{{order_item.order.address}}</td>
+        <td>{{order.id}}-</td>
+        <td>{{order.amount}}</td>
+        <td>{{order.firstname}} {{order.lastname}}</td>
+        <td>{{order.phonenumber}}</td>
+        <td>{{order.address}}</td>
       </tr>
     {% endfor %}
    </table>
