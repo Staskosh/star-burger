@@ -154,7 +154,11 @@ class Order(models.Model):
         default='Unprocessed',
         db_index=True
     )
-
+    comment = models.TextField(
+        'Комментарий',
+        max_length=250,
+        blank=True
+    )
 
     def amount(self):
         order_amount = OrderItem.objects.filter(order=self).aggregate(total_price=Sum('price'))
