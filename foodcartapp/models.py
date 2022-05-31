@@ -179,6 +179,18 @@ class Order(models.Model):
         null=True,
         db_index=True
     )
+    PAYMENT_OPTIONS = (
+        ('Online', 'Электронно'),
+        ('Cash', 'Наличность'),
+        ('Unknown', 'Неизвестно'),
+    )
+    payment_option = models.CharField(
+        'Способ оплаты',
+        max_length=15,
+        choices=PAYMENT_OPTIONS,
+        default='Unknown',
+        db_index=True
+    )
 
 
     def amount(self):
