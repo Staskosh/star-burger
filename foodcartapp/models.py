@@ -142,6 +142,19 @@ class Order(models.Model):
         'Адрес',
         max_length=250
     )
+    STATUSES = (
+        ('Unprocessed', 'Необработанный'),
+        ('In_procces', 'В работе'),
+        ('Сompleted', 'Завершен'),
+    )
+    status = models.CharField(
+        'Статус заказа',
+        max_length=15,
+        choices=STATUSES,
+        default='Unprocessed',
+        db_index=True
+    )
+
 
     def amount(self):
         order_amount = OrderItem.objects.filter(order=self).aggregate(total_price=Sum('price'))
