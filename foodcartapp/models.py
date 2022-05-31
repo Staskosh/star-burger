@@ -1,6 +1,9 @@
+from datetime import datetime
+
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Sum
+from django.utils.timezone import now
 from phonenumber_field.modelfields import PhoneNumberField
 from rest_framework.serializers import ModelSerializer
 
@@ -159,6 +162,24 @@ class Order(models.Model):
         max_length=250,
         blank=True
     )
+    registered_at = models.DateTimeField(
+        'Время регистрации заказа',
+        default=now,
+        db_index=True
+    )
+    called_at = models.DateTimeField(
+        'Время звонка',
+        blank=True,
+        null=True,
+        db_index=True
+    )
+    delivered_at = models.DateTimeField(
+        'Время доставки',
+        blank=True,
+        null=True,
+        db_index=True
+    )
+
 
     def amount(self):
         order_amount = OrderItem.objects.filter(order=self).aggregate(total_price=Sum('price'))
