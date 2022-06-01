@@ -1,7 +1,4 @@
-import json
-
 from django import forms
-from django.db.models import Count
 from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
@@ -11,8 +8,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
 
-from foodcartapp.models import Product, Restaurant, Order, OrderItem
-from star_burger import settings
+from foodcartapp.models import Product, Restaurant, Order
 
 
 class Login(forms.Form):
@@ -101,7 +97,24 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
+    orders = {}
+    for order in Order.objects.select_related('responsible_restaurant').order_by('responsible_restaurant_id'):
+        available_restaurants = []
+        order_amount = 0
+        for order_item in order.order.select_related('product'):
+            order_amount += order_item.price
+            restaurants = []
+            for item_restaurant in order_item.product.menu_items.select_related('restaurant'):
+                if item_restaurant.availability:
+                    restaurants.append(item_restaurant.restaurant)
+            available_restaurants.append(restaurants)
+        common_restaurants = list(set.intersection(*map(set, available_restaurants)))
+
+        orders[order] = {
+            'common_restaurants': common_restaurants,
+            'order_amount': order_amount
+        }
 
     return render(request, template_name='order_items.html', context={
-        'orders': Order.objects.all()
+        'orders': orders
     })

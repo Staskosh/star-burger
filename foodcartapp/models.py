@@ -1,8 +1,5 @@
-from datetime import datetime
-
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import Sum
 from django.utils.timezone import now
 from phonenumber_field.modelfields import PhoneNumberField
 from rest_framework.serializers import ModelSerializer
@@ -191,12 +188,15 @@ class Order(models.Model):
         default='Unknown',
         db_index=True
     )
+    responsible_restaurant = models.ForeignKey(
+        Restaurant,
+        related_name='responsible_restaurant',
+        verbose_name="Ответственный за готовку ресторан",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
 
-
-    def amount(self):
-        order_amount = OrderItem.objects.filter(order=self).aggregate(total_price=Sum('price'))
-
-        return order_amount['total_price']
 
     class Meta:
         verbose_name = 'Заказ'
