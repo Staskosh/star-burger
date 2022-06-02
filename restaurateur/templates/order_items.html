@@ -40,8 +40,12 @@
           {% else %}
             <details>
               <summary>Может быть приготовлен ресторанами</summary>
-              {% for restaurant in order_detail.common_restaurants %}
-                <ul><li>{{restaurant}}</li></ul>
+              {% for restaurant, distance in order_detail.restaurants_details.items %}
+                {% if not distance %}
+                  <li>Расcтояние до ресторана {{restaurant}} не определено</li>
+                {% else %}
+                    <ul><li>{{restaurant}} {{distance}} км </li></ul>
+                {% endif %}
               {% endfor %}
             </details>
           {% endif %}

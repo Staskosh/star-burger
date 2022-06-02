@@ -1,14 +1,14 @@
+import requests
 from django import forms
-from django.shortcuts import redirect, render
-from django.views import View
-from django.urls import reverse_lazy
-from django.contrib.auth.decorators import user_passes_test
-
+from django.conf import settings
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
-
-
-from foodcartapp.models import Product, Restaurant, Order
+from django.contrib.auth.decorators import user_passes_test
+from django.shortcuts import redirect, render
+from django.urls import reverse_lazy
+from django.views import View
+from foodcartapp.models import Order, Product, Restaurant
+from geopy import distance
 
 
 class Login(forms.Form):
@@ -95,10 +95,30 @@ def view_restaurants(request):
     })
 
 
+def fetch_coordinates(address):
+    apikey = settings.API_KEY_YA
+    base_url = "https://geocode-maps.yandex.ru/1.x"
+    response = requests.get(base_url, params={
+        "geocode": address,
+        "apikey": apikey,
+        "format": "json",
+    })
+    response.raise_for_status()
+    found_places = response.json()['response']['GeoObjectCollection']['featureMember']
+
+    if not found_places:
+        return None
+
+    most_relevant = found_places[0]
+    lon, lat = most_relevant['GeoObject']['Point']['pos'].split(" ")
+    return lon, lat
+
+
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     orders = {}
-    for order in Order.objects.select_related('responsible_restaurant').order_by('responsible_restaurant_id'):
+    db_orders = Order.objects.select_related('responsible_restaurant')
+    for order in db_orders.order_by('responsible_restaurant_id'):
         available_restaurants = []
         order_amount = 0
         for order_item in order.order.select_related('product'):
@@ -109,9 +129,25 @@ def view_orders(request):
                     restaurants.append(item_restaurant.restaurant)
             available_restaurants.append(restaurants)
         common_restaurants = list(set.intersection(*map(set, available_restaurants)))
+        order_coordinates = fetch_coordinates(order.address)
+        restaurants_details = {}
 
+        for common_restaurant in common_restaurants:
+            try:
+                common_restaurant_coordinates = fetch_coordinates(common_restaurant.address)
+                restaurants_and_order_distance = round(
+                    distance.distance(
+                        order_coordinates, common_restaurant_coordinates
+                    ).km, 3)
+                restaurants_details[common_restaurant] = restaurants_and_order_distance
+            except requests.exceptions.HTTPError:
+                restaurants_details[common_restaurant] = None
+        sorted_restaurants_details = {
+            restaurant: restaurants_details[restaurant]
+            for restaurant in sorted(restaurants_details, key=restaurants_details.get)
+        }
         orders[order] = {
-            'common_restaurants': common_restaurants,
+            'restaurants_details': sorted_restaurants_details,
             'order_amount': order_amount
         }
 
