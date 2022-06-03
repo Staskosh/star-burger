@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views import View
-from foodcartapp.models import Order, Product, Restaurant
+from foodcartapp.models import Order, Product, Restaurant, OrderItem, RestaurantMenuItem
 from geopy import distance
 
 
@@ -117,16 +117,21 @@ def fetch_coordinates(address):
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     orders = {}
-    db_orders = Order.objects.select_related('responsible_restaurant')
-    for order in db_orders.order_by('responsible_restaurant_id'):
+    db_orders = Order.objects.prefetch_related('responsible_restaurant').order_by('responsible_restaurant_id')
+    order_items = OrderItem.objects.prefetch_related('product', 'order')
+    menu_items = RestaurantMenuItem.objects.prefetch_related('product', 'restaurant')
+    for order in db_orders:
         available_restaurants = []
         order_amount = 0
-        for order_item in order.order.select_related('product'):
+        filtered_order_items = [order_item for order_item in order_items if order_item.order.id == order.id]
+        for order_item in filtered_order_items:
             order_amount += order_item.price
             restaurants = []
-            for item_restaurant in order_item.product.menu_items.select_related('restaurant'):
-                if item_restaurant.availability:
-                    restaurants.append(item_restaurant.restaurant)
+            filtered_restaurant_items = [menu_item for menu_item in menu_items
+                                         if menu_item.product.id == order_item.product.id]
+            for restaurant_item in filtered_restaurant_items:
+                if restaurant_item.availability:
+                    restaurants.append(restaurant_item.restaurant)
             available_restaurants.append(restaurants)
         common_restaurants = list(set.intersection(*map(set, available_restaurants)))
         order_coordinates = fetch_coordinates(order.address)
