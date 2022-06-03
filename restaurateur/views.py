@@ -7,8 +7,15 @@ from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views import View
-from foodcartapp.models import Order, Product, Restaurant, OrderItem, RestaurantMenuItem
+from foodcartapp.models import (
+    Order,
+    OrderItem,
+    Product,
+    Restaurant,
+    RestaurantMenuItem,
+)
 from geopy import distance
+from places.models import Place
 
 
 class Login(forms.Form):
@@ -114,16 +121,40 @@ def fetch_coordinates(address):
     return lon, lat
 
 
+def handle_place(places, place_address):
+    place_coordinates = [[place.lon, place.lat] for place in places
+                         if place.address == place_address]
+    if not place_coordinates:
+        place_coordinates = fetch_coordinates(place_address)
+        if place_coordinates:
+            lon, lat = place_coordinates
+            new_place = Place.objects.get_or_create(
+                address=place_address,
+                lon=lon,
+                lat=lat,
+            )
+
+            return lon, lat
+    else:
+        place_coordinates, *_ = place_coordinates
+        lon, lat = place_coordinates
+
+        return lon, lat
+
+
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     orders = {}
-    db_orders = Order.objects.prefetch_related('responsible_restaurant').order_by('responsible_restaurant_id')
+    db_orders = Order.objects.prefetch_related('responsible_restaurant')\
+        .order_by('responsible_restaurant_id')
     order_items = OrderItem.objects.prefetch_related('product', 'order')
     menu_items = RestaurantMenuItem.objects.prefetch_related('product', 'restaurant')
+    places = [place for place in Place.objects.all()]
     for order in db_orders:
         available_restaurants = []
         order_amount = 0
-        filtered_order_items = [order_item for order_item in order_items if order_item.order.id == order.id]
+        filtered_order_items = [order_item for order_item in order_items
+                                if order_item.order.id == order.id]
         for order_item in filtered_order_items:
             order_amount += order_item.price
             restaurants = []
@@ -134,19 +165,18 @@ def view_orders(request):
                     restaurants.append(restaurant_item.restaurant)
             available_restaurants.append(restaurants)
         common_restaurants = list(set.intersection(*map(set, available_restaurants)))
-        order_coordinates = fetch_coordinates(order.address)
-        restaurants_details = {}
 
+        restaurants_details = {}
         for common_restaurant in common_restaurants:
-            try:
-                common_restaurant_coordinates = fetch_coordinates(common_restaurant.address)
+            if not handle_place(places, order.address) or not handle_place(places, common_restaurant.address):
+                restaurants_and_order_distance = None
+            else:
                 restaurants_and_order_distance = round(
                     distance.distance(
-                        order_coordinates, common_restaurant_coordinates
+                        handle_place(places, order.address),
+                        handle_place(places, common_restaurant.address)
                     ).km, 3)
-                restaurants_details[common_restaurant] = restaurants_and_order_distance
-            except requests.exceptions.HTTPError:
-                restaurants_details[common_restaurant] = None
+            restaurants_details[common_restaurant] = restaurants_and_order_distance
         sorted_restaurants_details = {
             restaurant: restaurants_details[restaurant]
             for restaurant in sorted(restaurants_details, key=restaurants_details.get)

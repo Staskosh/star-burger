@@ -1,5 +1,4 @@
 from decimal import Decimal
-from sqlite3 import IntegrityError, DatabaseError
 
 from django.db import transaction
 from django.http import JsonResponse
@@ -75,6 +74,7 @@ def register_order(request):
         phonenumber=serializer.validated_data['phonenumber'],
         address=serializer.validated_data['address']
     )
+
     for product in serializer.validated_data['products']:
         product_price = product['product'].price
         price = Decimal(product_price * product['quantity'])
