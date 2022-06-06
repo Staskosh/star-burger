@@ -161,10 +161,10 @@ def view_orders(request):
             for restaurant_item in filtered_restaurant_items:
                 restaurants.append(restaurant_item.restaurant)
             available_restaurants.append(restaurants)
-        is_able_to_cook_restaurants = list(set.intersection(*map(set, available_restaurants)))
+        are_able_to_cook_restaurants = list(set.intersection(*map(set, available_restaurants)))
 
         restaurants_details = {}
-        for is_able_to_cook_restaurant in is_able_to_cook_restaurants:
+        for is_able_to_cook_restaurant in are_able_to_cook_restaurants:
             if not handle_place(places, order.address) or not handle_place(places, is_able_to_cook_restaurant.address):
                 restaurants_and_order_distance = None
             else:
