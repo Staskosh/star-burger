@@ -8,8 +8,16 @@ class Place(models.Model):
         max_length=200,
         unique=True
     )
-    lon = models.FloatField('Долгота')
-    lat = models.FloatField('Широта')
+    lon = models.FloatField(
+        'Долгота',
+        null=True,
+        blank=True
+    )
+    lat = models.FloatField(
+        'Широта',
+        null=True,
+        blank=True
+    )
     saved_at = models.DateTimeField(
         'Время сохранения места в дб',
         default=now,
