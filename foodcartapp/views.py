@@ -77,13 +77,13 @@ def register_order(request):
     order_items = []
     for product in serializer.validated_data['products']:
         product_price = product['product'].price
-        price = Decimal(product_price * product['quantity'])
+        item_price = Decimal(product_price * product['quantity'])
         order_items.append(
             OrderItem(
                 order=order,
                 product=product['product'],
                 quantity=product['quantity'],
-                price=price
+                price=item_price
             )
         )
     OrderItem.objects.bulk_create(order_items)
