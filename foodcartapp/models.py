@@ -191,7 +191,7 @@ class Order(models.Model):
     )
     responsible_restaurant = models.ForeignKey(
         Restaurant,
-        related_name='responsible_restaurant',
+        related_name='orders',
         verbose_name="Ответственный за готовку ресторан",
         on_delete=models.CASCADE,
         null=True,
@@ -209,7 +209,7 @@ class Order(models.Model):
 class OrderItem(models.Model):
     order = models.ForeignKey(
         Order,
-        related_name='order',
+        related_name='items',
         verbose_name="заказ",
         on_delete=models.CASCADE,
         db_index=True
@@ -217,7 +217,7 @@ class OrderItem(models.Model):
     product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,
-        related_name='product',
+        related_name='order_items',
         verbose_name='продукт',
     )
     quantity = models.IntegerField(
