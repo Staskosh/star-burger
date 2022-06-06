@@ -147,10 +147,12 @@ class Order(models.Model):
     )
     phonenumber = PhoneNumberField(
         'Телефон',
+        db_index=True
     )
     address = models.CharField(
         'Адрес',
-        max_length=250
+        max_length=250,
+        db_index=True
     )
     status = models.CharField(
         'Статус заказа',
