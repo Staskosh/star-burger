@@ -74,17 +74,19 @@ def register_order(request):
         phonenumber=serializer.validated_data['phonenumber'],
         address=serializer.validated_data['address']
     )
-
+    order_items = []
     for product in serializer.validated_data['products']:
         product_price = product['product'].price
         price = Decimal(product_price * product['quantity'])
-        OrderItem.objects.create(
-            order=order,
-            product=product['product'],
-            quantity=product['quantity'],
-            price=price
-
+        order_items.append(
+            OrderItem(
+                order=order,
+                product=product['product'],
+                quantity=product['quantity'],
+                price=price
+            )
         )
+    OrderItem.objects.bulk_create(order_items)
 
     serialized_date = serializer.data
     serialized_date['id'] = order.id
