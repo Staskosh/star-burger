@@ -88,9 +88,9 @@ def register_order(request):
         )
     OrderItem.objects.bulk_create(order_items)
 
-    serialized_date = serializer.data
-    serialized_date['id'] = order.id
+    serialized_data = serializer.data
+    serialized_data['id'] = order.id
 
-    return Response(serialized_date, status=status.HTTP_200_OK)
+    return Response(serialized_data, status=status.HTTP_200_OK)
 
 
