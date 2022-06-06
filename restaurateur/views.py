@@ -145,18 +145,16 @@ def handle_place(places, place_address):
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     orders = {}
-    db_orders = Order.objects.prefetch_related('responsible_restaurant')\
+    db_orders = Order.objects.with_amount().prefetch_related('responsible_restaurant')\
         .order_by('responsible_restaurant_id')
     order_items = OrderItem.objects.prefetch_related('product', 'order')
     menu_items = RestaurantMenuItem.objects.prefetch_related('product', 'restaurant')
     places = [place for place in Place.objects.all()]
     for order in db_orders:
         available_restaurants = []
-        order_amount = 0
         filtered_order_items = [order_item for order_item in order_items
                                 if order_item.order.id == order.id]
         for order_item in filtered_order_items:
-            order_amount += order_item.price
             restaurants = []
             filtered_restaurant_items = [menu_item for menu_item in menu_items
                                          if menu_item.product.id == order_item.product.id]
@@ -183,7 +181,7 @@ def view_orders(request):
         }
         orders[order] = {
             'restaurants_details': sorted_restaurants_details,
-            'order_amount': order_amount
+            'order_amount': order.amount
         }
 
     return render(request, template_name='order_items.html', context={
