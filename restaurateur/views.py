@@ -148,7 +148,7 @@ def view_orders(request):
     db_orders = Order.objects.with_amount().prefetch_related('responsible_restaurant')\
         .order_by('responsible_restaurant_id')
     order_items = OrderItem.objects.prefetch_related('product', 'order')
-    menu_items = RestaurantMenuItem.objects.prefetch_related('product', 'restaurant')
+    menu_items = RestaurantMenuItem.objects.prefetch_related('product', 'restaurant').filter(availability=True)
     places = [place for place in Place.objects.all()]
     for order in db_orders:
         available_restaurants = []
@@ -159,8 +159,7 @@ def view_orders(request):
             filtered_restaurant_items = [menu_item for menu_item in menu_items
                                          if menu_item.product.id == order_item.product.id]
             for restaurant_item in filtered_restaurant_items:
-                if restaurant_item.availability:
-                    restaurants.append(restaurant_item.restaurant)
+                restaurants.append(restaurant_item.restaurant)
             available_restaurants.append(restaurants)
         common_restaurants = list(set.intersection(*map(set, available_restaurants)))
 
