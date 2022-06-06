@@ -6,7 +6,7 @@ from django.db import migrations
 
 def add_registered_at_to_orders(apps, schema_editor):
     Order = apps.get_model('foodcartapp', 'Order')
-    for order in Order.objects.all():
+    for order in Order.objects.all().iterator():
         order.registered_at = datetime.now()
         order.save()
 
