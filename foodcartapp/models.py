@@ -127,6 +127,16 @@ class RestaurantMenuItem(models.Model):
 
 
 class Order(models.Model):
+    STATUSES = (
+        ('Unprocessed', 'Необработанный'),
+        ('In_procces', 'В работе'),
+        ('Сompleted', 'Завершен'),
+    )
+    PAYMENT_OPTIONS = (
+        ('Online', 'Электронно'),
+        ('Cash', 'Наличность'),
+        ('Unknown', 'Неизвестно'),
+    )
     firstname = models.CharField(
         'Имя',
         max_length=50
@@ -141,11 +151,6 @@ class Order(models.Model):
     address = models.CharField(
         'Адрес',
         max_length=250
-    )
-    STATUSES = (
-        ('Unprocessed', 'Необработанный'),
-        ('In_procces', 'В работе'),
-        ('Сompleted', 'Завершен'),
     )
     status = models.CharField(
         'Статус заказа',
@@ -176,11 +181,6 @@ class Order(models.Model):
         null=True,
         db_index=True
     )
-    PAYMENT_OPTIONS = (
-        ('Online', 'Электронно'),
-        ('Cash', 'Наличность'),
-        ('Unknown', 'Неизвестно'),
-    )
     payment_option = models.CharField(
         'Способ оплаты',
         max_length=15,
@@ -196,7 +196,6 @@ class Order(models.Model):
         null=True,
         blank=True
     )
-
 
     class Meta:
         verbose_name = 'Заказ'
