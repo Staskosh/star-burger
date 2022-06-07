@@ -152,12 +152,10 @@ def view_orders(request):
     places = [place for place in Place.objects.all()]
     for order in db_orders:
         available_restaurants = []
-        filtered_order_items = [order_item for order_item in order_items
-                                if order_item.order.id == order.id]
+        filtered_order_items = order.items.all()
         for order_item in filtered_order_items:
             restaurants = []
-            filtered_restaurant_items = [menu_item for menu_item in menu_items
-                                         if menu_item.product.id == order_item.product.id]
+            filtered_restaurant_items = order_item.product.menu_items.all()
             for restaurant_item in filtered_restaurant_items:
                 restaurants.append(restaurant_item.restaurant)
             available_restaurants.append(restaurants)
