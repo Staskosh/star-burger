@@ -1,5 +1,6 @@
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import FilteredRelation, Exists
 from django.utils.timezone import now
 from phonenumber_field.modelfields import PhoneNumberField
 from rest_framework.serializers import ModelSerializer
@@ -131,6 +132,8 @@ class OrderQuerySet(models.QuerySet):
         amount = self.annotate(
             amount=models.Sum(models.F('items__product__price') * models.F('items__quantity')))
         return amount
+
+
 
 
 class Order(models.Model):

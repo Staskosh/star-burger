@@ -146,10 +146,9 @@ def handle_place(places, place_address):
 def view_orders(request):
     orders = {}
     db_orders = Order.objects.with_amount().prefetch_related('responsible_restaurant')\
-        .order_by('responsible_restaurant_id')
-    order_items = OrderItem.objects.prefetch_related('product', 'order')
-    menu_items = RestaurantMenuItem.objects.prefetch_related('product', 'restaurant').filter(availability=True)
-    places = [place for place in Place.objects.all()]
+        .filter(status__in=['Unprocessed', 'In_procces']).order_by('responsible_restaurant_id')
+    db_orders_addresses = [db_orders_address.address for db_orders_address in db_orders]
+    places = [place for place in Place.objects.filter(address__in=db_orders_addresses)]
     for order in db_orders:
         available_restaurants = []
         filtered_order_items = order.items.all()
@@ -160,8 +159,8 @@ def view_orders(request):
                 restaurants.append(restaurant_item.restaurant)
             available_restaurants.append(restaurants)
         are_able_to_cook_restaurants = list(set.intersection(*map(set, available_restaurants)))
-
         restaurants_details = {}
+
         for is_able_to_cook_restaurant in are_able_to_cook_restaurants:
             if not handle_place(places, order.address) or not handle_place(places, is_able_to_cook_restaurant.address):
                 restaurants_and_order_distance = None
