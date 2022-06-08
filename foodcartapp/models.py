@@ -128,12 +128,27 @@ class RestaurantMenuItem(models.Model):
 
 
 class OrderQuerySet(models.QuerySet):
-    def with_amount(self):
-        amount = self.annotate(
-            amount=models.Sum(models.F('items__product__price') * models.F('items__quantity')))
-        return amount
 
-
+    def with_are_able_to_cook_restaurants(self):
+        orders = self.select_related('responsible_restaurant')\
+            .prefetch_related('items__product__menu_items__restaurant')\
+            .filter(status__in=['Unprocessed', 'In_procces'], items__product__menu_items__availability=True)\
+            .order_by('responsible_restaurant_id')
+        for order in orders:
+            available_restaurants = []
+            amount = 0
+            filtered_order_items = order.items.all()
+            for order_item in filtered_order_items:
+                amount += order_item.price
+                restaurants = []
+                filtered_restaurant_items = order_item.product.menu_items.all()
+                for restaurant_item in filtered_restaurant_items:
+                    restaurants.append(restaurant_item.restaurant)
+                available_restaurants.append(restaurants)
+            are_able_to_cook_restaurants = list(set.intersection(*map(set, available_restaurants)))
+            order.are_able_to_cook_restaurants = are_able_to_cook_restaurants
+            order.amount = amount
+        return orders
 
 
 class Order(models.Model):

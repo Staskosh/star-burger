@@ -128,7 +128,7 @@ def handle_place(places, place_address):
         place_coordinates = fetch_coordinates(place_address)
         if place_coordinates:
             lon, lat = place_coordinates
-            new_place = Place.objects.get_or_create(
+            Place.objects.get_or_create(
                 address=place_address,
                 lon=lon,
                 lat=lat,
@@ -145,23 +145,13 @@ def handle_place(places, place_address):
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     orders = {}
-    db_orders = Order.objects.with_amount().prefetch_related('responsible_restaurant')\
-        .filter(status__in=['Unprocessed', 'In_procces']).order_by('responsible_restaurant_id')
+    db_orders = Order.objects.with_are_able_to_cook_restaurants()
     db_orders_addresses = [db_orders_address.address for db_orders_address in db_orders]
-    places = [place for place in Place.objects.filter(address__in=db_orders_addresses)]
+    restaurant_addresses = [restaurant.address for restaurant in Restaurant.objects.all()]
+    places = [place for place in Place.objects.filter(address__in=db_orders_addresses+restaurant_addresses)]
     for order in db_orders:
-        available_restaurants = []
-        filtered_order_items = order.items.all()
-        for order_item in filtered_order_items:
-            restaurants = []
-            filtered_restaurant_items = order_item.product.menu_items.all()
-            for restaurant_item in filtered_restaurant_items:
-                restaurants.append(restaurant_item.restaurant)
-            available_restaurants.append(restaurants)
-        are_able_to_cook_restaurants = list(set.intersection(*map(set, available_restaurants)))
         restaurants_details = {}
-
-        for is_able_to_cook_restaurant in are_able_to_cook_restaurants:
+        for is_able_to_cook_restaurant in order.are_able_to_cook_restaurants:
             if not handle_place(places, order.address) or not handle_place(places, is_able_to_cook_restaurant.address):
                 restaurants_and_order_distance = None
             else:
