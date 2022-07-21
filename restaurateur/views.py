@@ -149,9 +149,7 @@ def view_orders(request):
     db_orders_addresses = [db_orders_address.address for db_orders_address in db_orders]
     restaurant_addresses = [restaurant.address for restaurant in Restaurant.objects.all()]
     places = [place for place in Place.objects.filter(address__in=db_orders_addresses+restaurant_addresses)]
-    print(db_orders)
     for order in db_orders:
-        # print(order.id, order.items.all())
         restaurants_details = {}
         for is_able_to_cook_restaurant in order.are_able_to_cook_restaurants:
             if not handle_place(places, order.address) or not handle_place(places, is_able_to_cook_restaurant.address):

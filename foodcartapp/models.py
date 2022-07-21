@@ -1,6 +1,6 @@
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import FilteredRelation, Exists
+from django.db.models import F, Sum
 from django.utils.timezone import now
 from phonenumber_field.modelfields import PhoneNumberField
 from rest_framework.serializers import ModelSerializer
@@ -128,11 +128,17 @@ class RestaurantMenuItem(models.Model):
 
 
 class OrderQuerySet(models.QuerySet):
+    def with_amount(self):
+        amount = self.annotate(
+            amount=Sum(F('items__price') * F('items__quantity')))
+
+        return amount
 
     def with_are_able_to_cook_restaurants(self):
+        orders_ids = self.filter(items__product__menu_items__availability=True).values_list('id', flat=True)
         orders = self.select_related('responsible_restaurant')\
             .prefetch_related('items__product__menu_items__restaurant')\
-            .filter(status__in=['Unprocessed', 'In_procces'], items__product__menu_items__availability=True)\
+            .filter(id__in=orders_ids, status__in=['Unprocessed', 'In_procces'])\
             .order_by('responsible_restaurant_id')
         for order in orders:
             available_restaurants = []
@@ -146,12 +152,6 @@ class OrderQuerySet(models.QuerySet):
             are_able_to_cook_restaurants = list(set.intersection(*map(set, available_restaurants)))
             order.are_able_to_cook_restaurants = are_able_to_cook_restaurants
         return orders
-
-    def with_amount(self):
-        amount = self.annotate(
-            amount=models.Sum(models.F('items__product__price') * models.F('items__quantity')))
-
-        return amount
 
 
 class Order(models.Model):
@@ -259,7 +259,6 @@ class OrderItem(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0)]
     )
-
 
     class Meta:
         verbose_name = 'Элемент  заказа'
