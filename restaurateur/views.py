@@ -141,7 +141,7 @@ def handle_place(places, place_address):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = {}
+    serialized_orders = {}
     db_orders = Order.objects.with_amount().with_are_able_to_cook_restaurants()
     db_orders_addresses = [db_orders_address.address for db_orders_address in db_orders]
     restaurant_addresses = [restaurant.address for restaurant in Restaurant.objects.all()]
@@ -163,11 +163,11 @@ def view_orders(request):
             restaurant: restaurants_details[restaurant]
             for restaurant in sorted(restaurants_details, key=restaurants_details.get)
         }
-        orders[order] = {
+        serialized_orders[order] = {
             'restaurants_details': sorted_restaurants_details,
             'order_amount': order.amount
         }
 
     return render(request, template_name='order_items.html', context={
-        'orders': orders
+        'orders': serialized_orders
     })
