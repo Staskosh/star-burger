@@ -83,10 +83,10 @@ def view_products(request):
             **default_availability,
             **{item.restaurant_id: item.availability for item in product.menu_items.all()},
         }
-        orderer_availability = [availability[restaurant.id] for restaurant in restaurants]
+        orders_availability = [availability[restaurant.id] for restaurant in restaurants]
 
         products_with_restaurants.append(
-            (product, orderer_availability)
+            (product, orders_availability)
         )
 
     return render(request, template_name="products_list.html", context={
