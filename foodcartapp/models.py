@@ -3,7 +3,6 @@ from django.db import models
 from django.db.models import F, Sum
 from django.utils.timezone import now
 from phonenumber_field.modelfields import PhoneNumberField
-from rest_framework.serializers import ModelSerializer
 
 
 class Restaurant(models.Model):
@@ -266,17 +265,3 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.quantity}"
-
-
-class ProductsSerializer(ModelSerializer):
-    class Meta:
-        model = OrderItem
-        fields = ['product', 'quantity']
-
-
-class OrderSerializer(ModelSerializer):
-    products = ProductsSerializer(many=True, allow_empty=False)
-
-    class Meta:
-        model = Order
-        fields = ['products', 'firstname', 'lastname', 'phonenumber', 'address']

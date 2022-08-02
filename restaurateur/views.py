@@ -9,10 +9,8 @@ from django.urls import reverse_lazy
 from django.views import View
 from foodcartapp.models import (
     Order,
-    OrderItem,
     Product,
     Restaurant,
-    RestaurantMenuItem,
 )
 from geopy import distance
 from places.models import Place
