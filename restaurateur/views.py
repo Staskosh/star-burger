@@ -101,7 +101,7 @@ def view_restaurants(request):
 
 
 def fetch_coordinates(address):
-    apikey = settings.API_KEY_YA
+    apikey = settings.YA_API_KEY
     base_url = "https://geocode-maps.yandex.ru/1.x"
     response = requests.get(base_url, params={
         "geocode": address,
@@ -110,7 +110,6 @@ def fetch_coordinates(address):
     })
     response.raise_for_status()
     found_places = response.json()['response']['GeoObjectCollection']['featureMember']
-
     if not found_places:
         return None
 
@@ -150,8 +149,9 @@ def view_orders(request):
     for order in db_orders:
         restaurants_details = {}
         for is_able_to_cook_restaurant in order.are_able_to_cook_restaurants:
+
             if not handle_place(places, order.address) or not handle_place(places, is_able_to_cook_restaurant.address):
-                restaurants_and_order_distance = None
+                restaurants_and_order_distance = 0
             else:
                 restaurants_and_order_distance = round(
                     distance.distance(
