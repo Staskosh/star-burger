@@ -22,22 +22,25 @@ def fetch_coordinates(address):
     return lon, lat
 
 
-def handle_place(places, place_address):
-    place_coordinates = [[place.lon, place.lat] for place in places
-                         if place.address == place_address]
-    if not place_coordinates:
-        place_coordinates = fetch_coordinates(place_address)
-        if place_coordinates:
-            lon, lat = place_coordinates
-            Place.objects.get_or_create(
-                address=place_address,
-                lon=lon,
-                lat=lat,
-            )
+def get_serialized_places_and_coordinates(order_places):
+    serialized_places_and_coordinates = {}
+    places_and_coordinates = {}
+    for place in Place.objects.filter(address__in=order_places):
+        places_and_coordinates[place.address] = [place.lon, place.lat]
 
-            return lon, lat
-    else:
-        place_coordinates, *_ = place_coordinates
-        lon, lat = place_coordinates
+    for place in order_places:
+        if place not in places_and_coordinates:
+            place_coordinates = fetch_coordinates(place)
+            serialized_places_and_coordinates[place] = None
+            if place_coordinates:
+                lon, lat = place_coordinates
+                Place.objects.get_or_create(
+                    address=place,
+                    lon=lon,
+                    lat=lat,
+                )
+                serialized_places_and_coordinates[place] = [place_coordinates]
+        else:
+            serialized_places_and_coordinates[place] = places_and_coordinates[place]
 
-        return lon, lat
+    return serialized_places_and_coordinates

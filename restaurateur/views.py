@@ -1,4 +1,3 @@
-import requests
 from django import forms
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
@@ -13,8 +12,7 @@ from foodcartapp.models import (
 )
 from geopy import distance
 
-from places.models import Place
-from places.views import handle_place
+from places.views import get_serialized_places_and_coordinates
 
 
 class Login(forms.Form):
@@ -77,7 +75,6 @@ def view_products(request):
     default_availability = {restaurant.id: False for restaurant in restaurants}
     products_with_restaurants = []
     for product in products:
-
         availability = {
             **default_availability,
             **{item.restaurant_id: item.availability for item in product.menu_items.all()},
@@ -107,18 +104,22 @@ def view_orders(request):
     db_orders = Order.objects.with_amount().with_are_able_to_cook_restaurants()
     db_orders_addresses = [db_orders_address.address for db_orders_address in db_orders]
     restaurant_addresses = [restaurant.address for restaurant in Restaurant.objects.all()]
-    places = [place for place in Place.objects.filter(address__in=db_orders_addresses+restaurant_addresses)]
+    serialized_places_and_coordinates = get_serialized_places_and_coordinates(
+        db_orders_addresses + restaurant_addresses)
     for order in db_orders:
         restaurants_details = {}
         for is_able_to_cook_restaurant in order.are_able_to_cook_restaurants:
-
-            if not handle_place(places, order.address) or not handle_place(places, is_able_to_cook_restaurant.address):
+            if not serialized_places_and_coordinates[
+                order.address
+            ] or not serialized_places_and_coordinates[
+                is_able_to_cook_restaurant.address
+            ]:
                 restaurants_and_order_distance = 0
             else:
                 restaurants_and_order_distance = round(
                     distance.distance(
-                        handle_place(places, order.address),
-                        handle_place(places, is_able_to_cook_restaurant.address)
+                        serialized_places_and_coordinates[order.address],
+                        serialized_places_and_coordinates[is_able_to_cook_restaurant.address]
                     ).km, 3)
             restaurants_details[is_able_to_cook_restaurant] = restaurants_and_order_distance
         sorted_restaurants_details = {
