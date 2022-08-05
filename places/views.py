@@ -23,11 +23,11 @@ def fetch_coordinates(address):
 
 
 def get_serialized_places_and_coordinates(order_places):
-    serialized_places_and_coordinates = {}
     places_and_coordinates = {}
     for place in Place.objects.filter(address__in=order_places):
         places_and_coordinates[place.address] = [place.lon, place.lat]
 
+    serialized_places_and_coordinates = {}
     for place in order_places:
         if place not in places_and_coordinates:
             place_coordinates = fetch_coordinates(place)
