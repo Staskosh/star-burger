@@ -15,7 +15,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG', True)
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', ['127.0.0.1', 'localhost'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
 INSTALLED_APPS = [
     'foodcartapp.apps.FoodcartappConfig',
@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'rest_framework',
     'places',
+    'rollbar',
 ]
 
 MIDDLEWARE = [
@@ -41,6 +42,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'rollbar.contrib.django.middleware.RollbarNotifierMiddlewareExcluding404',
 ]
 
 ROOT_URLCONF = 'star_burger.urls'
@@ -131,3 +133,12 @@ LOGIN_REDIRECT_URL = '/api/order/'
 PHONENUMBER_DEFAULT_REGION = 'RU'
 PHONENUMBER_DB_FORMAT = "NATIONAL"
 YA_API_KEY = env('YA_API_KEY')
+
+ROLLBAR_POST_SERVER_TOKEN = env('ROLLBAR_POST_SERVER_TOKEN')
+ROLLBAR_ENV = env('ROLLBAR_ENV')
+ROLLBAR = {
+    'access_token': ROLLBAR_POST_SERVER_TOKEN,
+    'environment': ROLLBAR_ENV,
+    'root': BASE_DIR,
+    'enabled': True,
+}
