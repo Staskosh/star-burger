@@ -145,3 +145,4 @@ Parcel будет следить за файлами в каталоге `bundle
 - `YA_API_KEY` - секретный ключ от [Яндекс API](https://developer.tech.yandex.ru/services/)
 - `ROLLBAR_POST_SERVER_TOKEN` - секретный ключ от проекта в [rollbar](https://rollbar.com/)
 - `ROLLBAR_ENV` - название окружения для [rollbar](https://rollbar.com/)
+- `POSTGRES_URL` - тут сслыка на базу данных в формате `postgres://user:p#ssword!@localhost/foobar`. Как настроить [POSTGRESQL](https://www.digitalocean.com/community/tutorials/how-to-use-postgresql-with-your-django-application-on-ubuntu-20-04)
