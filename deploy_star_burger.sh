@@ -3,6 +3,8 @@ set -e
 cd /opt/star-burger
 source star-burger-env/bin/activate
 git pull
+python3 manage.py migrate --noinput
+python3 manage.py collectstatic --noinput
 systemctl daemon-reload
 systemctl reload nginx
 REVISION=$(git rev-parse --short HEAD)
