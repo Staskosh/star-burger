@@ -137,6 +137,6 @@ ROLLBAR_ENV = env('ROLLBAR_ENV')
 ROLLBAR = {
     'access_token': ROLLBAR_POST_SERVER_TOKEN,
     'environment': ROLLBAR_ENV,
-    'server': {'root': BASE_DIR, 'branch': 'main'},
+    'root': BASE_DIR,
     'enabled': True,
 }
